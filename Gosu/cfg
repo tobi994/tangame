@@ -1,0 +1,10 @@
+#!/bin/bash
+while test $# -gt 0; do
+    case $1 in
+    --libs)
+    echo "-L/usr/lib -lSDL -lSDL_mixer -L -lX11 -lpangoft2-1.0 -lpango-1.0 -lfreetype -lz -lfontconfig -lgobject-2.0 -lgmodule-2.0 -ldl -lglib-2.0   -lpng -lGL -lGLU -lglut -lXxf86vm ";;
+    --cxxflags)
+    echo "-I.. -I/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -Wall -I/usr/include/pango-1.0 -I/usr/include/freetype2 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include    -DHAVE_SYS_STAT_H -I/usr/lib/ruby/1.8/i486-linux -I -fPIC -DNDEBUG -O3 -pipe -fomit-frame-pointer";;
+    esac
+    shift
+done
