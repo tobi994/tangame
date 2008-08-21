@@ -16,7 +16,7 @@
 extern void mouseQueryCallback(cpShape *shape, void *data);
 
 MainWindow::MainWindow() : Gosu::Window(640, 480, false) {
-	setCaption(L"Tangram");
+	setCaption(L"Tangame");
 	selectedShape = NULL;
 	
 	cpInitChipmunk();
