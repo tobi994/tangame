@@ -57,12 +57,25 @@ void MainWindow::update() {
 		if (!mouseDown) {
 			mouseQueryCallback(NULL, NULL); //reset the current shape
 			cpSpaceShapePointQuery(space, cpv(input().mouseX(), input().mouseY()), mouseQueryCallback, NULL);
-			if (selectedShape) selectedShapeOffset = cpBodyWorld2Local(selectedShape->body, cpv(input().mouseX(), input().mouseY()));
+			if (selectedShape) {
+				if (input().down(Gosu::kbLeftControl) or input().down(Gosu::kbRightControl))
+					selectedShapeOffset = cpvzero; //drag from the middle if control is pressed
+				else if (input().down(Gosu::kbLeftShift) or input().down(Gosu::kbRightShift)) {
+					selectedShapeAngOffset = selectedShape->body->a; //set the initial angle
+					selectedShapeOffset = cpvsub(selectedShape->body->p, cpv(input().mouseX(), input().mouseY())); //set the inital mouse direction
+				} else selectedShapeOffset = cpBodyWorld2Local(selectedShape->body, cpv(input().mouseX(), input().mouseY()));
+			}
 		}
 		if (selectedShape) {
-			//apply a force on the selected shape toward the mouse
-			cpVect force = cpvsub(cpBodyWorld2Local(selectedShape->body, cpv(input().mouseX(), input().mouseY())), selectedShapeOffset); //the force to apply is the distance to the mouse minus the offset from the body's centre
-			cpBodyApplyForce(selectedShape->body, cpvrotate(cpvmult(cpv(force.x, force.y), 100.0f), selectedShape->body->rot), cpvrotate(selectedShapeOffset, selectedShape->body->rot)); //here we make the force stronger and rotate the force to match the body
+			if (input().down(Gosu::kbLeftShift) or input().down(Gosu::kbRightShift)) { //if shift is pressed
+				//change the angle to the direction of the mouse
+				cpFloat angle = selectedShapeAngOffset + cpvtoangle(cpvsub(selectedShape->body->p, cpv(input().mouseX(), input().mouseY()))) - cpvtoangle(selectedShapeOffset);
+				cpBodySetAngle(selectedShape->body, angle);
+			} else {
+				//apply a force on the selected shape toward the mouse
+				cpVect force = cpvsub(cpBodyWorld2Local(selectedShape->body, cpv(input().mouseX(), input().mouseY())), selectedShapeOffset); //the force to apply is the distance to the mouse minus the offset from the body's centre
+				cpBodyApplyForce(selectedShape->body, cpvrotate(cpvmult(cpv(force.x, force.y), 100.0f), selectedShape->body->rot), cpvrotate(selectedShapeOffset, selectedShape->body->rot)); //here we make the force stronger and rotate the force to match the body
+			}
 		}
 		mouseDown = true;
 	} else {

@@ -34,6 +34,7 @@ class MainWindow : public Gosu::Window {
 	boost::scoped_ptr<Piece> pieces[7];
 	cpShape *selectedShape;
 	cpVect selectedShapeOffset;
+	cpFloat selectedShapeAngOffset;
 	bool mouseDown;
 };
 
