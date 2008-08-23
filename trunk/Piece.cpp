@@ -55,6 +55,7 @@ Piece::Piece(Gosu::Graphics& graphics, cpSpace *s, int t, cpFloat x, cpFloat y, 
 		moment = cpMomentForPoly(mass, 4, verts3, cpvzero); //moment of inertia, calculated with the chipmunk helper function
 		body = cpBodyNew(mass, moment); //create the body with the mass and moment of inertia
 		shape = cpPolyShapeNew(body, 4, verts3, cpvzero); //create the shape
+		reflected = false;
 		break;
 		
 		case 4: //medium triangle
@@ -84,5 +85,19 @@ void Piece::update(void) {
 }
 
 void Piece::draw(void) {
-	image->drawRot(body->p.x, body->p.y, 1, body->a*180/Gosu::pi);
+	if (type != 3 or reflected == false) image->drawRot(body->p.x, body->p.y, 1, body->a*180/Gosu::pi); //draw the normal image if it is a normal shape or unreflected paralellogram
+	else image->drawRot(body->p.x, body->p.y, 1, body->a*180/Gosu::pi, 0.5, 0.5, -1); //Otherwise, draw a the same image, reflected
+}
+
+void Piece::toggleReflection(void) {
+	if (type != 3) return; //only do this function for the paralellogram.
+	//another sad, messy bit... *cries*
+	cpVect verts[4] = {cpv(-37.5f, -37.5f), cpv(-112.5f, 37.5f), cpv(37.5f, 37.5f), cpv(112.5f, -37.5)};
+	cpVect vertsR[4] = {cpv(-112.5f, -37.5f), cpv(-37.5f, 37.5f), cpv(112.5f, 37.5f), cpv(37.5f, -37.5)};
+	cpSpaceRemoveShape(space, shape);
+	cpShapeFree(shape);
+	if (reflected) shape = cpPolyShapeNew(body, 4, verts, cpvzero); //create the shape
+	else if (!reflected) shape = cpPolyShapeNew(body, 4, vertsR, cpvzero); //create the reflected shape
+	cpSpaceAddShape(space, shape);
+	reflected = !reflected;
 }
