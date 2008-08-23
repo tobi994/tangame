@@ -47,11 +47,29 @@ void MainWindow::update() {
 		pieces[i]->update();
 	}
 	
-	if (input().down(Gosu::kbLeft)) cpBodyApplyImpulse(pieces[6]->body, cpv(-100,0), cpvzero);
-	if (input().down(Gosu::kbRight)) cpBodyApplyImpulse(pieces[6]->body, cpv(100,0), cpvzero);
-	if (input().down(Gosu::kbUp)) cpBodyApplyImpulse(pieces[6]->body, cpv(0,-100), cpvzero);
-	if (input().down(Gosu::kbDown)) cpBodyApplyImpulse(pieces[6]->body, cpv(0,100), cpvzero);
+	if (input().down(Gosu::kbF1)) {
+		if (!f1Down) pieces[5]->toggleReflection();
+		f1Down = true;
+	} else f1Down = false;
 	
+	int substeps = 5; //collision detection isn't great in chipmunk; divide it up
+	cpFloat dt = (1.0f/60.0f) / (cpFloat)substeps;//change substeps into amount of time
+	
+	shapeDragging();
+	
+	for (int i = 0; i<substeps; i++) cpSpaceStep(space, dt);//next step
+}
+
+void MainWindow::draw() {
+	backgroundImage->draw(0, 0, -1);
+	
+	for (int i = 0; i < 7; i++) {
+		pieces[i]->draw();
+	}
+	cursorImage->draw(input().mouseX(), input().mouseY(), 99);
+}
+
+void MainWindow::shapeDragging(void) {
 	if (input().down(Gosu::msLeft)) { //if the mouse is down
 		//set selectedShape to what was pressed (test if the mouse was just pressed or is just down by seeing if it was down last step
 		if (!mouseDown) {
@@ -69,30 +87,17 @@ void MainWindow::update() {
 		if (selectedShape) {
 			if (input().down(Gosu::kbLeftShift) or input().down(Gosu::kbRightShift)) { //if shift is pressed
 				//change the angle to the direction of the mouse
-				cpFloat angle = selectedShapeAngOffset + cpvtoangle(cpvsub(selectedShape->body->p, cpv(input().mouseX(), input().mouseY()))) - cpvtoangle(selectedShapeOffset);
+				cpFloat angle = selectedShapeAngOffset+ cpvtoangle(cpvsub(selectedShape->body->p, cpv(input().mouseX(), input().mouseY()))) - cpvtoangle(selectedShapeOffset);
 				cpBodySetAngle(selectedShape->body, angle);
 			} else {
 				//apply a force on the selected shape toward the mouse
 				cpVect force = cpvsub(cpBodyWorld2Local(selectedShape->body, cpv(input().mouseX(), input().mouseY())), selectedShapeOffset); //the force to apply is the distance to the mouse minus the offset from the body's centre
 				cpBodyApplyForce(selectedShape->body, cpvrotate(cpvmult(cpv(force.x, force.y), 100.0f), selectedShape->body->rot), cpvrotate(selectedShapeOffset, selectedShape->body->rot)); //here we make the force stronger and rotate the force to match the body
+				selectedShape->body->w *= 0.6f; //damp the rotation so it doesn't wobble
 			}
 		}
 		mouseDown = true;
 	} else {
 		mouseDown = false;
 	}
-	
-	int substeps = 5; //collision detection isn't great in chipmunk; divide it up
-	cpFloat dt = (1.0f/60.0f) / (cpFloat)substeps;//change substeps into amount of time
-	
-	for (int i = 0; i<substeps; i++) cpSpaceStep(space, dt);//next step
-}
-
-void MainWindow::draw() {
-	backgroundImage->draw(0, 0, -1);
-	
-	for (int i = 0; i < 7; i++) {
-		pieces[i]->draw();
-	}
-	cursorImage->draw(input().mouseX(), input().mouseY(), 99);
 }

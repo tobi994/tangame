@@ -22,6 +22,8 @@ class Piece {
 	void update(void);
 	void draw(void);
 	
+	void toggleReflection(void); //only for paralellogram
+	
 	//variables
 	int type; //types: 0-big triangle, 1-small triangle, 2-diamond, 3-parallelogram, 4-medium triangle
 	std::wstring imagePath; //path to the image. Just media/piece0.png, piece1.png, etc
@@ -30,6 +32,7 @@ class Piece {
 	cpShape *shape; //the physics shape
 	cpSpace *space;
 	float friction, rotFriction;
+	bool reflected; //only useful for paralellogram
 	
 };
 
