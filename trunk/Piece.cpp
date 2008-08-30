@@ -9,14 +9,16 @@
 #include <cstdlib>
 #include <list>
 #include <vector>
+#include <iostream>
 
 #include "Piece.hpp"
 
-Piece::Piece(Gosu::Graphics& graphics, cpSpace *s, int t, cpFloat x, cpFloat y, cpFloat a) {
+Piece::Piece(Gosu::Graphics& g, cpSpace *s, int t, cpFloat x, cpFloat y, cpFloat a) {
 	type = t;
 	space = s;
+	graphics = &g;
 	imagePath = Gosu::sharedResourcePrefix() + L"media/piece" + boost::lexical_cast<std::wstring>(type) + L".png"; //media/piece0.png, piece1.png, etc
-	image.reset(new Gosu::Image(graphics, imagePath, false)); //load the image
+	image.reset(new Gosu::Image(g, imagePath, false)); //load the image
 	
 	//shape vertices - I really need to fix this, its messy and makes me sad.
 	cpVect verts0[3] = {cpv(0, -75), cpv(-150, 75), cpv(150, 75)};
@@ -24,8 +26,6 @@ Piece::Piece(Gosu::Graphics& graphics, cpSpace *s, int t, cpFloat x, cpFloat y, 
 	cpVect verts2[4] = {cpv(0, -75), cpv(-75, 0), cpv(0, 75), cpv(75, 0)};
 	cpVect verts3[4] = {cpv(-37.5f, -37.5f), cpv(-112.5f, 37.5f), cpv(37.5f, 37.5f), cpv(112.5f, -37.5)};
 	cpVect verts4[3] = {cpv(0, -53.03f), cpv(-106.07f, 53.03f), cpv(106.07f, 53.03f)};
-	cpFloat mass;
-	cpFloat moment;
 	
 	//the verts are set so that all shapes have pointy bits facing up, except the parallelogram (bits facing left and right)
 	switch(type) { 
@@ -69,8 +69,10 @@ Piece::Piece(Gosu::Graphics& graphics, cpSpace *s, int t, cpFloat x, cpFloat y, 
 	rotFriction = 0.95f;
 	body->p = cpv(x, y);
 	body->a = a*Gosu::pi/180;
+	body->data = (void *)this;//reference to self for shape picking
 	cpSpaceAddBody(space, body);
 	cpSpaceAddShape(space, shape);
+	locked = false;
 }
 
 Piece::~Piece(void) {
@@ -87,6 +89,12 @@ void Piece::update(void) {
 void Piece::draw(void) {
 	if (type != 3 or reflected == false) image->drawRot(body->p.x, body->p.y, 1, body->a*180/Gosu::pi); //draw the normal image if it is a normal shape or unreflected paralellogram
 	else image->drawRot(body->p.x, body->p.y, 1, body->a*180/Gosu::pi, 0.5, 0.5, -1); //Otherwise, draw a the same image, reflected
+	
+	//draw a red cross on the piece if it is locked
+	if (locked) {
+		graphics->drawLine(body->p.x-5, body->p.y-5, 0xffff0000, body->p.x+5, body->p.y+5, 0xffff0000, 2);
+		graphics->drawLine(body->p.x+5, body->p.y-5, 0xffff0000, body->p.x-5, body->p.y+5, 0xffff0000, 2);
+	}
 }
 
 void Piece::toggleReflection(void) {
@@ -100,4 +108,21 @@ void Piece::toggleReflection(void) {
 	else if (!reflected) shape = cpPolyShapeNew(body, 4, vertsR, cpvzero); //create the reflected shape
 	cpSpaceAddShape(space, shape);
 	reflected = !reflected;
+}
+
+void Piece::lock(void) {
+	cpBodySetMass(body, INFINITY);
+	cpBodySetMoment(body, INFINITY);
+	locked = true;
+}
+
+void Piece::unlock(void) {
+	cpBodySetMass(body, mass);
+	cpBodySetMoment(body, moment);
+	locked = false;
+}
+
+void Piece::toggleLock(void) {
+	if (locked) unlock();
+	else if (!locked) lock();
 }

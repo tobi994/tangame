@@ -17,23 +17,28 @@
 class Piece {
 	public:
 	//functions
-	Piece(Gosu::Graphics& graphics, cpSpace *s, int t, cpFloat x = 320, cpFloat y = 240, cpFloat a = 0); //constructor
+	Piece(Gosu::Graphics& g, cpSpace *s, int t, cpFloat x = 320, cpFloat y = 240, cpFloat a = 0); //constructor
 	~Piece(void); //destructor
 	void update(void);
 	void draw(void);
 	
 	void toggleReflection(void); //only for paralellogram
+	void toggleLock(void);
+	void lock(void);
+	void unlock(void);
 	
 	//variables
+	Gosu::Graphics *graphics;
 	int type; //types: 0-big triangle, 1-small triangle, 2-diamond, 3-parallelogram, 4-medium triangle
 	std::wstring imagePath; //path to the image. Just media/piece0.png, piece1.png, etc
 	boost::scoped_ptr<Gosu::Image> image; //the image
 	cpBody *body; //the physics body - NOTE: scoped pointers aren't appropriate for chipmunk objects because chipmunk is C based (not C++)
 	cpShape *shape; //the physics shape
 	cpSpace *space;
+	cpFloat mass, moment; //although these are in the body, we need to store them seperately for locking
 	float friction, rotFriction;
 	bool reflected; //only useful for paralellogram
-	
+	bool locked;
 };
 
 #endif
