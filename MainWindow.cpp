@@ -43,17 +43,31 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::update() {
+	int substeps = 5; //collision detection isn't great in chipmunk; divide it up
+	cpFloat dt = (1.0f/60.0f) / (cpFloat)substeps;//change substeps into amount of time
+	
 	for (int i = 0; i < 7; i++) {
 		pieces[i]->update();
 	}
 	
+	//toggle the reflection of the paralellogram when F1 is pressed
 	if (input().down(Gosu::kbF1)) {
 		if (!f1Down) pieces[5]->toggleReflection();
 		f1Down = true;
 	} else f1Down = false;
+	if (input().down(Gosu::kbF12)) dumpPositions(); //dump the pieces location when F12 is pressed
 	
-	int substeps = 5; //collision detection isn't great in chipmunk; divide it up
-	cpFloat dt = (1.0f/60.0f) / (cpFloat)substeps;//change substeps into amount of time
+	if (input().down(Gosu::msRight)) { //if the mouse is down
+		//toggle the lock of the shape pressed (test if the mouse was just pressed or is just down by seeing if it was down last step as well)
+		if (!rightMouseDown) {
+			mouseQueryCallback(NULL, NULL); //reset the current shape
+			cpSpaceShapePointQuery(space, cpv(input().mouseX(), input().mouseY()), mouseQueryCallback, NULL);//get the shape
+			if (selectedShape) {
+				((Piece *)selectedShape->body->data)->toggleLock();
+			}
+		}
+		rightMouseDown = true;
+	} else rightMouseDown = false;
 	
 	shapeDragging();
 	
@@ -72,7 +86,7 @@ void MainWindow::draw() {
 void MainWindow::shapeDragging(void) {
 	if (input().down(Gosu::msLeft)) { //if the mouse is down
 		//set selectedShape to what was pressed (test if the mouse was just pressed or is just down by seeing if it was down last step
-		if (!mouseDown) {
+		if (!leftMouseDown) {
 			mouseQueryCallback(NULL, NULL); //reset the current shape
 			cpSpaceShapePointQuery(space, cpv(input().mouseX(), input().mouseY()), mouseQueryCallback, NULL);
 			if (selectedShape) {
@@ -96,8 +110,16 @@ void MainWindow::shapeDragging(void) {
 				selectedShape->body->w *= 0.6f; //damp the rotation so it doesn't wobble
 			}
 		}
-		mouseDown = true;
+		leftMouseDown = true;
 	} else {
-		mouseDown = false;
+		leftMouseDown = false;
+	}
+}
+
+void MainWindow::dumpPositions(void) {
+	for (int i = 0; i < 7; i++) {
+		std::cout << "Piece " << i << std::endl << "  x: " << pieces[i]->body->p.x << ",  y: " <<  pieces[i]->body->p.y << ", Angle: " << pieces[i]->body->a;
+		if (pieces[i]->type == 3) std::cout << ", Reflected: " << pieces[i]->reflected;
+		std::cout << std::endl << std::endl;
 	}
 }

@@ -22,7 +22,8 @@ class MainWindow : public Gosu::Window {
 	~MainWindow(); //destructor - frees stuff
 	void update(); //update function - most processing here
 	void draw(); //draw function - have a guess what this does (NO PROCESSING ALLOWED)
-	void shapeDragging(void);
+	void shapeDragging(void); //handles the dragging of shapes
+	void dumpPositions(void); //dump the positions, rotations (and reflection for paralellogram) to cout
 	
 	//images
 	std::wstring backgroundPath;
@@ -36,7 +37,7 @@ class MainWindow : public Gosu::Window {
 	cpShape *selectedShape;
 	cpVect selectedShapeOffset;
 	cpFloat selectedShapeAngOffset;
-	bool mouseDown, f1Down; //these are so we can tell if a key was just pressed or is being held down
+	bool leftMouseDown, rightMouseDown, f1Down; //these are so we can tell if a key was just pressed or is being held down
 };
 
 #endif
