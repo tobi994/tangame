@@ -92,8 +92,8 @@ void Piece::draw(void) {
 	
 	//draw a red cross on the piece if it is locked
 	if (locked) {
-		graphics->drawLine(body->p.x-5, body->p.y-5, 0xffff0000, body->p.x+5, body->p.y+5, 0xffff0000, 2);
-		graphics->drawLine(body->p.x+5, body->p.y-5, 0xffff0000, body->p.x-5, body->p.y+5, 0xffff0000, 2);
+		graphics->drawLine(body->p.x-6, body->p.y-6, 0xffff0000, body->p.x+6, body->p.y+6, 0xffff0000, 2);
+		graphics->drawLine(body->p.x+6, body->p.y-6, 0xffff0000, body->p.x-6, body->p.y+6, 0xffff0000, 2);
 	}
 }
 
@@ -110,19 +110,24 @@ void Piece::toggleReflection(void) {
 	reflected = !reflected;
 }
 
-void Piece::lock(void) {
-	cpBodySetMass(body, INFINITY);
-	cpBodySetMoment(body, INFINITY);
+void Piece::lock(int what) { //what = 1: lock position, what = 2: lock rotation, what = anything else: lock all
+	shape->group = 1; //set locked shapes' groups' to 1 so they don't collide and explode (really)
+	if (what != 2) cpBodySetMass(body, INFINITY);
+	if (what != 1) {
+		cpBodySetMoment(body, INFINITY);
+		body->w = 0; //angular rotation set to zero to stop spinning
+	}
 	locked = true;
 }
 
-void Piece::unlock(void) {
-	cpBodySetMass(body, mass);
-	cpBodySetMoment(body, moment);
+void Piece::unlock(int what) {
+	shape->group = 0; //put collision group back to zero
+	if (what != 2) cpBodySetMass(body, mass);
+	if (what != 1) cpBodySetMoment(body, moment);
 	locked = false;
 }
 
 void Piece::toggleLock(void) {
-	if (locked) unlock();
-	else if (!locked) lock();
+	if (locked) unlock(0);
+	else if (!locked) lock(0);
 }
