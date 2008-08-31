@@ -18,7 +18,7 @@
 class MainWindow : public Gosu::Window {
 	public:
 	//functions
-	MainWindow(); //constructor - set the title and variables here
+	MainWindow(int w, int h); //constructor - set the title and variables here
 	~MainWindow(); //destructor - frees stuff
 	void update(); //update function - most processing here
 	void draw(); //draw function - have a guess what this does (NO PROCESSING ALLOWED)
@@ -32,11 +32,17 @@ class MainWindow : public Gosu::Window {
 	boost::scoped_ptr<Gosu::Image> cursorImage;
 	
 	//variables
+	int width, height;
 	cpSpace *space; //NOTE: scoped pointers aren't appropriate for chipmunk objects because chipmunk is C based (not C++)
-	boost::scoped_ptr<Piece> pieces[7];
+	
+	//window edges
+	cpBody *staticBody;
+	cpShape *topEdge, *rightEdge, *bottomEdge, *leftEdge;
+	
 	cpShape *selectedShape;
 	cpVect selectedShapeOffset;
 	cpFloat selectedShapeAngOffset;
+	boost::scoped_ptr<Piece> pieces[7];
 	bool leftMouseDown, rightMouseDown, f1Down; //these are so we can tell if a key was just pressed or is being held down
 };
 

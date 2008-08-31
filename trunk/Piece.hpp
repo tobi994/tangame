@@ -23,9 +23,9 @@ class Piece {
 	void draw(void);
 	
 	void toggleReflection(void); //only for paralellogram
-	void toggleLock(void);
-	void lock(void);
-	void unlock(void);
+	void toggleLock(void); //if anything is locked, unlock everything. if everything is unlocked, lock everything
+	void lock(int what); //what = 1: lock position, what = 2: lock rotation, what = anything else: lock all
+	void unlock(int what);
 	
 	//variables
 	Gosu::Graphics *graphics;

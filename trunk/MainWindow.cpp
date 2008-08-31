@@ -15,8 +15,11 @@
 
 extern void mouseQueryCallback(cpShape *shape, void *data);
 
-MainWindow::MainWindow() : Gosu::Window(640, 480, false) {
+MainWindow::MainWindow(int w, int h) : Gosu::Window(w, h, false) {
 	setCaption(L"Tangame");
+	
+	width = w;
+	height = h;
 	selectedShape = NULL;
 	
 	cpInitChipmunk();
@@ -27,6 +30,22 @@ MainWindow::MainWindow() : Gosu::Window(640, 480, false) {
 	backgroundImage.reset(new Gosu::Image(graphics(), backgroundPath, false));
 	cursorPath = Gosu::sharedResourcePrefix() + L"media/cursor.png";
 	cursorImage.reset(new Gosu::Image(graphics(), cursorPath, false));
+	
+	//create static window border
+	staticBody = cpBodyNew(INFINITY, INFINITY);
+	topEdge = cpSegmentShapeNew(staticBody, cpv(-1, -1), cpv(width+1, -1), 2);
+	topEdge->group = 1; //so that the wall doesn't make locked pieces explode
+	rightEdge = cpSegmentShapeNew(staticBody, cpv(width+1, -1), cpv(width+1, height+1), 2);
+	rightEdge->group = 1;
+	bottomEdge = cpSegmentShapeNew(staticBody, cpv(width+1, height+1), cpv(-1, height+1), 2);
+	bottomEdge->group = 1;
+	leftEdge = cpSegmentShapeNew(staticBody, cpv(-1, height+1), cpv(-1, -1), 2);
+	leftEdge->group = 1;
+	cpSpaceAddBody(space, staticBody);
+	cpSpaceAddStaticShape(space, topEdge);
+	cpSpaceAddStaticShape(space, rightEdge);
+	cpSpaceAddStaticShape(space, bottomEdge);
+	cpSpaceAddStaticShape(space, leftEdge);
 	
 	//create pieces
 	pieces[0].reset(new Piece(graphics(), space, 0, 200, 100));
@@ -39,6 +58,11 @@ MainWindow::MainWindow() : Gosu::Window(640, 480, false) {
 }
 
 MainWindow::~MainWindow() {
+	cpShapeFree(topEdge);
+	cpShapeFree(rightEdge);
+	cpShapeFree(bottomEdge);
+	cpShapeFree(leftEdge);
+	cpBodyFree(staticBody);
 	cpSpaceFree(space);
 }
 

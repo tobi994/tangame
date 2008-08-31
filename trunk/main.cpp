@@ -48,7 +48,7 @@ void mouseQueryCallback(cpShape *shape, void *data);
 
 int main(int argc, char** argv)
 {
-	win.reset(new MainWindow);
+	win.reset(new MainWindow(640, 480));
 	win->show();
 	return 0;
 }
